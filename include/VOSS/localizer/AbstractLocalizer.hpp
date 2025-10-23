@@ -1,35 +1,36 @@
 #pragma once
 
-#include "pros/rtos.hpp"
 #include "VOSS/utils/Point.hpp"
 #include "VOSS/utils/Pose.hpp"
-#include <mutex>
+#include "pros/rtos.hpp"
 
-namespace voss::localizer {
+namespace voss::localizer
+{
 
-class AbstractLocalizer {
-  protected:
-    pros::Mutex mtx;
-    AtomicPose pose;
+class AbstractLocalizer
+{
+ protected:
+  pros::Mutex mtx;
+  AtomicPose pose;
 
-  public:
-    AbstractLocalizer();
+ public:
+  AbstractLocalizer();
 
-    virtual void update() = 0;
-    void begin_localization();
+  virtual void update() = 0;
+  void begin_localization();
 
-    virtual void set_pose(Pose pose);
-    virtual void set_pose(double x, double y, double theta);
+  virtual void set_pose(Pose pose);
+  virtual void set_pose(double x, double y, double theta);
 
-    Pose get_pose();
-    double get_x();
-    double get_y();
-    double get_orientation_rad();
-    double get_orientation_deg();
-    Point get_position();
-    void wait_until_near(Point target, double tolerance);
-    void wait_until_distance(double distance);
-    virtual void calibrate() = 0;
+  Pose get_pose();
+  double get_x();
+  double get_y();
+  double get_orientation_rad();
+  double get_orientation_deg();
+  Point get_position();
+  void wait_until_near(Point target, double tolerance);
+  void wait_until_distance(double distance);
+  virtual void calibrate() = 0;
 };
 
-} // namespace voss::localizer
+}  // namespace voss::localizer

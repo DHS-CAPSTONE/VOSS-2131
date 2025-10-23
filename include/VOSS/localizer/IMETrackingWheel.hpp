@@ -1,21 +1,24 @@
 #pragma once
 
-#include "pros/motors.hpp"
-#include "VOSS/localizer/AbstractTrackingWheel.hpp"
 #include <memory>
 
-namespace voss::localizer {
+#include "VOSS/localizer/AbstractTrackingWheel.hpp"
+#include "pros/motors.hpp"
 
-class IMETrackingWheel : public AbstractTrackingWheel {
-  private:
-    std::unique_ptr<pros::v5::Motor> encoder;
+namespace voss::localizer
+{
 
-  protected:
-    double get_raw_position() override;
+class IMETrackingWheel : public AbstractTrackingWheel
+{
+ private:
+  std::unique_ptr<pros::v5::Motor> encoder;
 
-  public:
-    IMETrackingWheel(int port);
-    void reset() override;
+ protected:
+  double get_raw_position() override;
+
+ public:
+  IMETrackingWheel(int port);
+  void reset() override;
 };
 
-} // namespace voss::localizer
+}  // namespace voss::localizer

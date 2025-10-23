@@ -1,24 +1,22 @@
 #include "main.h"
-#include "VOSS/api.hpp"
+
+#include "VOSS/chassis/DiffChassis.hpp"
+#include "VOSS/controller/ArcPIDControllerBuilder.hpp"
 #include "VOSS/controller/BoomerangControllerBuilder.hpp"
 #include "VOSS/controller/PIDControllerBuilder.hpp"
 #include "VOSS/controller/SwingControllerBuilder.hpp"
-#include "VOSS/localizer/ADILocalizerBuilder.hpp"
+#include "VOSS/exit_conditions/ExitConditions.hpp"
+#include "VOSS/localizer/IMELocalizerBuilder.hpp"
+#include "VOSS/utils/debug.hpp"
 #include "VOSS/utils/flags.hpp"
 
-#define LEFT_MOTORS                                                            \
-    { -10, -12, 14, -15, 20 }
-#define RIGHT_MOTORS                                                           \
-    { 1, 2, -3, -4, 5 }
-
-auto odom = voss::localizer::TrackingWheelLocalizerBuilder::new_builder()
-                .with_left_encoder(3)
-                .with_middle_encoder(1)
+auto odom = voss::localizer::IMELocalizerBuilder::new_builder()
+                .with_left_motors({1, 2, 3})
+                .with_right_motors({4, 5, 6})
                 .with_imu(19)
-                .with_left_right_tpi(522)
-                .with_middle_tpi(522)
-                .with_track_width(2)
-                .with_middle_dist(1.5)
+                .with_left_right_tpi(200.0 * 400.0 / 600.0)
+                .with_middle_tpi(200.0 * 400.0 / 600.0)
+                .with_track_width(10.75)  //
                 .build();
 
 auto pid = voss::controller::PIDControllerBuilder::new_builder(odom)
@@ -54,12 +52,16 @@ auto ec = voss::controller::ExitConditions::new_conditions()
               .add_tolerance(1.0, 2.0, 200)
               .add_timeout(22500)
               .add_thru_smoothness(4)
-              .build() -> exit_if([]() {
-                  return master.get_digital(pros::E_CONTROLLER_DIGITAL_UP);
-              });
+              .build()
+              ->exit_if([]() -> bool { return master.get_digital(pros::E_CONTROLLER_DIGITAL_UP); });
 
-auto chassis = voss::chassis::DiffChassis(LEFT_MOTORS, RIGHT_MOTORS, pid, ec, 8,
-                                          pros::E_MOTOR_BRAKE_COAST);
+auto chassis = voss::chassis::DiffChassis(
+    {1, 2, 3},  //
+    {4, 5, 6},
+    pid,
+    ec,
+    8,
+    pros::E_MOTOR_BRAKE_COAST);
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -67,9 +69,10 @@ auto chassis = voss::chassis::DiffChassis(LEFT_MOTORS, RIGHT_MOTORS, pid, ec, 8,
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
-void initialize() {
-    pros::lcd::initialize();
-    odom->begin_localization();
+void initialize()
+{
+  pros::lcd::initialize();
+  odom->begin_localization();
 }
 
 /**
@@ -77,8 +80,7 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {
-}
+void disabled() {}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -89,8 +91,7 @@ void disabled() {
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {
-}
+void competition_initialize() {}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -103,20 +104,7 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {
-    // auto odom = voss::localizer::ADILocalizerBuilder::new_builder().build();
-    // auto pid =
-    // voss::controller::BoomerangControllerBuilder::new_builder(odom)
-    //                .with_lead_pct(60)
-    //                .build();
-
-    // // auto pid2 =
-    // // voss::controller::BoomerangControllerBuilder::new_builder(odom)
-    // //                 .with_lead_pct(65)
-    // //                 .build();
-
-    // auto pid2 = voss::controller::ControllerCopy(pid).modify_lead_pct(65);
-}
+void autonomous() {}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -131,28 +119,28 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void opcontrol() {
+void opcontrol()
+{
+  while (true)
+  {
+    voss::Pose p = odom->get_pose();
 
-    while (true) {
-        voss::Pose p = odom->get_pose();
+    chassis.tank(master.get_analog(ANALOG_LEFT_Y), master.get_analog(ANALOG_RIGHT_Y));
 
-        chassis.arcade(master.get_analog(ANALOG_LEFT_Y),
-                       master.get_analog(ANALOG_RIGHT_X));
-
-        if (master.get_digital_new_press(DIGITAL_Y)) {
-            odom->set_pose({0.0, 0.0, 0});
-            voss::enable_debug();
-            chassis.move({-36, -36, 90}, boomerang, 70, voss::Flags::REVERSE);
-            voss::disable_debug();
-        }
-
-        pros::lcd::clear_line(1);
-        pros::lcd::clear_line(2);
-        pros::lcd::clear_line(3);
-        pros::lcd::print(1, "%lf", p.x);
-        pros::lcd::print(2, "%lf", p.y);
-        pros::lcd::print(3, "%lf", odom->get_orientation_deg());
-        pros::lcd::print(4, "%s", (odom == nullptr) ? "true" : "false");
-        pros::delay(10);
+    if (master.get_digital_new_press(DIGITAL_Y))
+    {
+      voss::enable_debug();
+      chassis.move({-36, -36, 90}, boomerang, 70, voss::Flags::RELATIVE);
+      voss::disable_debug();
     }
+
+    pros::lcd::clear_line(1);
+    pros::lcd::clear_line(2);
+    pros::lcd::clear_line(3);
+    pros::lcd::print(1, "%lf", p.x);
+    pros::lcd::print(2, "%lf", p.y);
+    pros::lcd::print(3, "%lf", odom->get_orientation_deg());
+    pros::lcd::print(4, "%s", (odom == nullptr) ? "true" : "false");
+    pros::delay(10);
+  }
 }

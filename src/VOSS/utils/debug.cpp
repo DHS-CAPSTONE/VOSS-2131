@@ -1,18 +1,12 @@
 #include "VOSS/utils/debug.hpp"
 
-namespace voss {
-
+namespace voss
+{
 bool debug;
 
-void enable_debug() {
-    debug = true;
-}
+void enable_debug() { debug = true; }
 
-void disable_debug() {
-    debug = false;
-}
+void disable_debug() { debug = false; }
 
-bool get_debug() {
-    return debug;
-}
-}
+bool get_debug() { return debug; }
+}  // namespace voss

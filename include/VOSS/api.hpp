@@ -1,41 +1,36 @@
 #pragma once
 
-#include "chassis/AbstractChassis.hpp"
-#include "chassis/ChassisCommand.hpp"
-#include "chassis/DiffChassis.hpp"
-#include "chassis/HDriveChassis.hpp"
-#include "chassis/XDriveChassis.hpp"
-
-#include "controller/AbstractController.hpp"
-#include "controller/ArcPIDController.hpp"
-#include "controller/ArcPIDControllerBuilder.hpp"
-#include "controller/BoomerangController.hpp"
-#include "controller/BoomerangControllerBuilder.hpp"
-#include "controller/PIDController.hpp"
-#include "controller/PIDControllerBuilder.hpp"
-#include "controller/SwingController.hpp"
-#include "controller/SwingControllerBuilder.hpp"
-
-#include "exit_conditions/AbstractExitCondition.hpp"
-#include "exit_conditions/ExitConditions.hpp"
-#include "exit_conditions/SettleExitCondition.hpp"
-#include "exit_conditions/TimeOutExitCondition.hpp"
-#include "exit_conditions/ToleranceAngularExitCondition.hpp"
-#include "exit_conditions/ToleranceLinearExitCondition.hpp"
-
-#include "localizer/AbstractLocalizer.hpp"
-#include "localizer/ADILocalizer.hpp"
-#include "localizer/ADILocalizerBuilder.hpp"
-#include "localizer/GPSLocalizer.hpp"
-#include "localizer/IMELocalizer.hpp"
-#include "localizer/IMELocalizerBuilder.hpp"
-#include "localizer/TrackingWheelLocalizer.hpp"
-#include "localizer/TrackingWheelLocalizerBuilder.hpp"
-
-#include "selector/Selector.hpp"
-
-#include "utils/angle.hpp"
-#include "utils/debug.hpp"
-#include "utils/flags.hpp"
-#include "utils/Point.hpp"
-#include "utils/Pose.hpp"
+#include "chassis/AbstractChassis.hpp"                        // IWYU pragma: keep
+#include "chassis/ChassisCommand.hpp"                         // IWYU pragma: keep
+#include "chassis/DiffChassis.hpp"                            // IWYU pragma: keep
+#include "chassis/HDriveChassis.hpp"                          // IWYU pragma: keep
+#include "chassis/XDriveChassis.hpp"                          // IWYU pragma: keep
+#include "controller/AbstractController.hpp"                  // IWYU pragma: keep
+#include "controller/ArcPIDController.hpp"                    // IWYU pragma: keep
+#include "controller/ArcPIDControllerBuilder.hpp"             // IWYU pragma: keep
+#include "controller/BoomerangController.hpp"                 // IWYU pragma: keep
+#include "controller/BoomerangControllerBuilder.hpp"          // IWYU pragma: keep
+#include "controller/PIDController.hpp"                       // IWYU pragma: keep
+#include "controller/PIDControllerBuilder.hpp"                // IWYU pragma: keep
+#include "controller/SwingController.hpp"                     // IWYU pragma: keep
+#include "controller/SwingControllerBuilder.hpp"              // IWYU pragma: keep
+#include "exit_conditions/AbstractExitCondition.hpp"          // IWYU pragma: keep
+#include "exit_conditions/ExitConditions.hpp"                 // IWYU pragma: keep
+#include "exit_conditions/SettleExitCondition.hpp"            // IWYU pragma: keep
+#include "exit_conditions/TimeOutExitCondition.hpp"           // IWYU pragma: keep
+#include "exit_conditions/ToleranceAngularExitCondition.hpp"  // IWYU pragma: keep
+#include "exit_conditions/ToleranceLinearExitCondition.hpp"   // IWYU pragma: keep
+#include "localizer/ADILocalizer.hpp"                         // IWYU pragma: keep
+#include "localizer/ADILocalizerBuilder.hpp"                  // IWYU pragma: keep
+#include "localizer/AbstractLocalizer.hpp"                    // IWYU pragma: keep
+#include "localizer/GPSLocalizer.hpp"                         // IWYU pragma: keep
+#include "localizer/IMELocalizer.hpp"                         // IWYU pragma: keep
+#include "localizer/IMELocalizerBuilder.hpp"                  // IWYU pragma: keep
+#include "localizer/TrackingWheelLocalizer.hpp"               // IWYU pragma: keep
+#include "localizer/TrackingWheelLocalizerBuilder.hpp"        // IWYU pragma: keep
+#include "selector/Selector.hpp"                              // IWYU pragma: keep
+#include "utils/Point.hpp"                                    // IWYU pragma: keep
+#include "utils/Pose.hpp"                                     // IWYU pragma: keep
+#include "utils/angle.hpp"                                    // IWYU pragma: keep
+#include "utils/debug.hpp"                                    // IWYU pragma: keep
+#include "utils/flags.hpp"                                    // IWYU pragma: keep
