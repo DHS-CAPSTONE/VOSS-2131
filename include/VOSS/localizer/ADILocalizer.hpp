@@ -14,8 +14,7 @@ class ADILocalizer : public AbstractLocalizer
 {
  private:
   std::atomic<double> prev_left_pos, prev_right_pos, prev_middle_pos;
-  AtomicPose prev_pose;
-
+  
   std::atomic<double> left_right_tpi, middle_tpi;
   std::atomic<double> track_width;
   std::atomic<double> left_right_dist, middle_dist;

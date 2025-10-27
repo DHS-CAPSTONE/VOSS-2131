@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <mutex>
+#include <optional>
 
 #include "VOSS/constants.hpp"
 #include "VOSS/utils/angle.hpp"
@@ -12,7 +13,7 @@ namespace voss::localizer
 
 // Creating the localizer object with a starting pose of x = 0, y = 0, and
 // heading = 0
-AbstractLocalizer::AbstractLocalizer() { this->pose = AtomicPose{0.0, 0.0, 0.0}; }
+AbstractLocalizer::AbstractLocalizer() { this->set_pose({0.0, 0.0, 0.0}); }
 
 // Starting the localization task
 // Once started it don't stop until program is stopped or data abort
@@ -49,11 +50,13 @@ void AbstractLocalizer::set_pose(Pose pose)
   if (pose.theta.has_value())
   {
     this->pose = AtomicPose{pose.x, pose.y, voss::to_radians(pose.theta.value())};
+    this->prev_pose = this->pose;
   }
   else
   {
     double h = this->pose.theta;
     this->pose = AtomicPose{pose.x, pose.y, h};
+    this->prev_pose = this->pose;
   }
 }
 
@@ -67,6 +70,12 @@ Pose AbstractLocalizer::get_pose()
   std::unique_lock<pros::Mutex> lock(this->mtx);
   Pose ret = {this->pose.x.load(), this->pose.y.load(), this->pose.theta.load()};
   return ret;
+}
+
+Pose AbstractLocalizer::get_velocity()
+{
+  std::unique_lock<pros::Mutex> lock(this->mtx);
+  return local_velocity;
 }
 
 double AbstractLocalizer::get_x()

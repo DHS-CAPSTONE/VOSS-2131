@@ -1,7 +1,8 @@
 #include "main.h"
-#include "Competition/RobotConfig.hpp"
-#include "Competition/MatchAutos.hpp"
 
+#include "Competition/MatchAutos.hpp"
+#include "Competition/RobotConfig.hpp"
+#include "VOSS/utils/angle.hpp"
 #include "VOSS/utils/debug.hpp"
 #include "VOSS/utils/flags.hpp"
 
@@ -23,10 +24,18 @@ void initialize()
   screen.addTelemetries({
       {"Battery", []() { return std::to_string(pros::battery::get_capacity()); }},
       {"Position",
-       [](){
+       []() {
          auto position = odom->get_pose();
-         return "\n  X: " + std::to_string(position.x) + "\n  Y: " + std::to_string(position.y) +
-                "\n  Theta: " + std::to_string(position.theta.value_or(0.0));
+         return "  " + std::to_string(position.x) + ", " + std::to_string(position.y) + ", " +
+                std::to_string(voss::to_degrees(
+                    position.theta.value_or(std::numeric_limits<double>::infinity())));
+       }},
+      {"Velocity",
+       []() {
+         auto velocity = odom->get_velocity();
+         return "  " + std::to_string(velocity.x) + ", " + std::to_string(velocity.y) + ", " +
+                std::to_string(voss::to_degrees(
+                    velocity.theta.value_or(std::numeric_limits<double>::infinity())));
        }},
   });
 }

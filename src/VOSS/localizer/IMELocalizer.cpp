@@ -114,7 +114,9 @@ void IMELocalizer::update()
   double left_pos = get_left_encoder_value();
   double right_pos = get_right_encoder_value();
   double middle_pos = get_middle_encoder_value();
-  double imu_Value = get_imu_value();
+  double imu_value = get_imu_value();
+
+  if (std::isinf(imu_value) || std::isnan(imu_value)) { return; }
 
   double delta_left = 0.0;
   if (left_motors) delta_left = (left_pos - prev_left_pos) / left_right_tpi;
@@ -126,7 +128,11 @@ void IMELocalizer::update()
   if (horizontal_motors) delta_middle = (middle_pos - prev_middle_pos) / middle_tpi;
 
   double delta_angle = 0.0;
-  if (imu) { this->pose.theta = -1 * imu_Value; }
+  if (imu)
+  {
+    this->pose.theta = -1 * imu_value;
+    delta_angle = this->pose.theta - prev_pose.theta;
+  }
   else
   {
     delta_angle = (delta_right - delta_left) / track_width;
@@ -136,7 +142,7 @@ void IMELocalizer::update()
   prev_left_pos = left_pos;
   prev_right_pos = right_pos;
   prev_middle_pos = middle_pos;
-  prev_pose = pose;
+  prev_pose = this->pose;
 
   double local_x;
   double local_y;
@@ -153,11 +159,23 @@ void IMELocalizer::update()
     local_y = delta_middle;
   }
 
+  double delta_time_ms = (pros::millis() - last_timestamp);
+
+  if (delta_time_ms != 0)
+  {
+    local_velocity = Pose{
+        1000.0 * local_x / delta_time_ms,
+        1000.0 * local_y / delta_time_ms,
+        1000.0 * delta_angle / delta_time_ms};
+  }
+  
   double p = this->pose.theta - delta_angle / 2.0;  // global angle
 
   // convert to absolute displacement
   this->pose.x += cos(p) * local_x - sin(p) * local_y;
   this->pose.y += sin(p) * local_x + cos(p) * local_y;
+
+  last_timestamp = pros::millis();
 }
 
 void IMELocalizer::set_pose(Pose pose)

@@ -101,6 +101,8 @@ void ADILocalizer::update()
   double middle_pos = get_middle_encoder_value();
   double imu_value = get_imu_value();
 
+  if (std::isinf(imu_value) || std::isnan(imu_value)) { return; }
+
   double delta_left = 0.0;
   if (left_encoder) delta_left = (left_pos - prev_left_pos) / left_right_tpi;
 
@@ -112,7 +114,11 @@ void ADILocalizer::update()
 
   double delta_angle = 0.0;
 
-  if (imu) { this->pose.theta = -1 * imu_value; }
+  if (imu)
+  {
+    this->pose.theta = -1 * imu_value;
+    delta_angle = this->pose.theta - prev_pose.theta;
+  }
   else
   {
     // if (left_encoder || right_encoder){
@@ -140,12 +146,23 @@ void ADILocalizer::update()
     local_x = delta_right;
     local_y = delta_middle;
   }
+  double delta_time_ms = (pros::millis() - last_timestamp);
+
+  if (delta_time_ms != 0)
+  {
+    local_velocity = Pose{
+        1000.0 * local_x / delta_time_ms,
+        1000.0 * local_y / delta_time_ms,
+        1000.0 * delta_angle / delta_time_ms};
+  }
 
   double p = this->pose.theta - delta_angle / 2.0;  // global angle
 
   // convert to absolute displacement
   this->pose.x += cos(p) * local_x - sin(p) * local_y;
   this->pose.y += sin(p) * local_x + cos(p) * local_y;
+  
+  last_timestamp = pros::millis();
 }
 
 void ADILocalizer::set_pose(Pose pose)

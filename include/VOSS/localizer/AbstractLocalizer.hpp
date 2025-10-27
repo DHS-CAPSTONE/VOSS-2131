@@ -12,6 +12,10 @@ class AbstractLocalizer
  protected:
   pros::Mutex mtx;
   AtomicPose pose;
+  AtomicPose prev_pose;
+  Pose local_velocity = {0.0, 0.0, 0.0};
+
+  uint32_t last_timestamp = 0;
 
  public:
   AbstractLocalizer();
@@ -23,6 +27,7 @@ class AbstractLocalizer
   virtual void set_pose(double x, double y, double theta);
 
   Pose get_pose();
+  Pose get_velocity();
   double get_x();
   double get_y();
   double get_orientation_rad();
