@@ -16,6 +16,8 @@ class DiffChassis : public AbstractChassis
   std::unique_ptr<pros::MotorGroup> left_motors;
   std::unique_ptr<pros::MotorGroup> right_motors;
   double slew_step;
+  double kV = 0.0;
+  double kS = 0.0;
   diff_commands::Voltages prev_voltages;
 
   double slew(double target, bool is_left);
@@ -27,6 +29,8 @@ class DiffChassis : public AbstractChassis
       controller_ptr default_controller,
       ec_ptr ec,
       double slew_step = 8,
+      double kV = 0.0,
+      double kS = 0.0,
       pros::motor_brake_mode_e brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
 
   void tank(double left_speed, double right_speed) override;

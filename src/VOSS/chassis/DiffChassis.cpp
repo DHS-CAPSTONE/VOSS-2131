@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "ChassisCommand.hpp"
 #include "pros/motors.h"
 
 namespace voss::chassis
@@ -33,8 +34,10 @@ DiffChassis::DiffChassis(
     controller_ptr default_controller,
     ec_ptr ec,
     double slew_step,
+    double kV,
+    double kS,
     pros::motor_brake_mode_e brakeMode)
-    : AbstractChassis(default_controller, ec)
+    : AbstractChassis(default_controller, ec), kV(kV), kS(kS)
 {
   this->left_motors = std::make_unique<pros::MotorGroup>(left_motors);
   this->right_motors = std::make_unique<pros::MotorGroup>(right_motors);
@@ -96,6 +99,15 @@ bool DiffChassis::execute(DiffChassisCommand cmd, double max)
             this->right_motors->move_voltage(120 * v.right);
 
             this->prev_voltages = v;
+
+            return false;
+          },
+          [this, max](diff_commands::WheelVelocities& v) {
+            this->execute(
+                diff_commands::Voltages{
+                    v.left * this->kV + copysign(v.left, this->kS),
+                    v.right * this->kV + copysign(v.right, this->kS)},
+                max * this->kV + copysign(max, this->kS));
 
             return false;
           },

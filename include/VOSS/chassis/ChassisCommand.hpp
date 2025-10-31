@@ -16,6 +16,12 @@ struct Voltages
   double left;
   double right;
 };
+struct WheelVelocities
+{
+  double left;
+  double right;
+};
+
 struct Chained
 {
   double left;
@@ -38,8 +44,12 @@ struct Voltages
 };
 }  // namespace holonomic_commands
 
-using DiffChassisCommand =
-    std::variant<Stop, diff_commands::Voltages, diff_commands::Chained, diff_commands::Swing>;
+using DiffChassisCommand = std::variant<
+    Stop,
+    diff_commands::Voltages,
+    diff_commands::WheelVelocities,
+    diff_commands::Chained,
+    diff_commands::Swing>;
 using HolonomicChassisCommand = std::variant<Stop, holonomic_commands::Voltages>;
 
 template <class... Ts>

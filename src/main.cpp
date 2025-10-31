@@ -2,6 +2,7 @@
 
 #include "Competition/MatchAutos.hpp"
 #include "Competition/RobotConfig.hpp"
+#include "VOSS/chassis/DiffChassis.hpp"
 #include "VOSS/utils/angle.hpp"
 #include "VOSS/utils/debug.hpp"
 #include "VOSS/utils/flags.hpp"
@@ -16,7 +17,6 @@ void initialize()
       {"Left Side", "Left Side Half Autonomous Win Point", leftSideAWP},
       {"Right Side", "Right Side Half Autonomous Win Point", rightSideAWP},
       {"Skills", "Skills Autonomous", skills},
-
   });
 
   screen.initialize(2, true);
@@ -58,6 +58,9 @@ void opcontrol()
       chassis.move({36, 36, 90}, arc, 70, voss::Flags::RELATIVE);
       voss::disable_debug();
     }
+
+    double x = 10.0;
+    chassis.execute(voss::chassis::diff_commands::WheelVelocities{x, x}, 1000.0);
 
     pros::delay(10);
   }
