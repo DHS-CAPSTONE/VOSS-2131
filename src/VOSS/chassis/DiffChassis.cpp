@@ -105,8 +105,8 @@ bool DiffChassis::execute(DiffChassisCommand cmd, double max)
           [this, max](diff_commands::WheelVelocities& v) {
             this->execute(
                 diff_commands::Voltages{
-                    v.left * this->kV + copysign(v.left, this->kS),
-                    v.right * this->kV + copysign(v.right, this->kS)},
+                    (v.left * this->kV + copysign(v.left, this->kS)) / 120.0,
+                    (v.right * this->kV + copysign(v.right, this->kS)) / 120.0},
                 max * this->kV + copysign(max, this->kS));
 
             return false;

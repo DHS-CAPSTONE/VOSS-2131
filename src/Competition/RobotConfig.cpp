@@ -70,8 +70,8 @@ std::shared_ptr<voss::controller::FollowVelocityPath> follow_velocity_path =
         voss::CubicBezierSpline<1000>{
             {0, 0},
             {24, 0},
-            {24, 24},
-            {48, 24},
+            {36, 24},
+            {36, 0},
         });
 
 voss::chassis::DiffChassis chassis(
@@ -80,8 +80,9 @@ voss::chassis::DiffChassis chassis(
     pid,
     ec,
     8,
-    1183.65488701421f,
     135.5858378091f,
+    1183.65488701421f,
+
     pros::E_MOTOR_BRAKE_COAST);
 
 voss::Screen screen;

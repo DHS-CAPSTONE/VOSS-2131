@@ -10,7 +10,7 @@ class FollowVelocityPath : public AbstractController
 {
  protected:
   CubicBezierSpline<1000> spline;
-  double track_width;
+  double track_width = 10.5;
 
  public:
   FollowVelocityPath(

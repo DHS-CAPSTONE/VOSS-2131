@@ -6,6 +6,8 @@
 #include "VOSS/utils/angle.hpp"
 #include "VOSS/utils/debug.hpp"
 #include "VOSS/utils/flags.hpp"
+#include "pros/abstract_motor.hpp"
+#include "pros/motors.h"
 
 void initialize()
 {
@@ -44,7 +46,11 @@ void disabled() {}
 
 void competition_initialize() {}
 
-void autonomous() { chassis.move({0, 0, 0}, follow_velocity_path, 10000, voss::Flags::RELATIVE); }
+void autonomous()
+{
+  chassis.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  chassis.move({0, 0, 0}, follow_velocity_path, 10000, voss::Flags::RELATIVE);
+}
 
 void opcontrol()
 {
