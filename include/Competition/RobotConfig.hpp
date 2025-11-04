@@ -5,6 +5,7 @@
 #include "VOSS/chassis/DiffChassis.hpp"
 #include "VOSS/controller/ArcPIDController.hpp"
 #include "VOSS/controller/BoomerangController.hpp"
+#include "VOSS/controller/FollowVelocityPath.hpp"
 #include "VOSS/controller/PIDController.hpp"
 #include "VOSS/controller/SwingController.hpp"
 #include "VOSS/exit_conditions/ExitConditions.hpp"
@@ -19,6 +20,7 @@ extern std::shared_ptr<voss::controller::BoomerangController> boomerang;
 extern std::shared_ptr<voss::controller::SwingController> swing;
 extern std::shared_ptr<voss::controller::ArcPIDController> arc;
 extern std::shared_ptr<voss::controller::ExitConditions> ec;
+extern std::shared_ptr<voss::controller::FollowVelocityPath> follow_velocity_path;
 
 extern voss::Screen screen;
 extern pros::Controller primary;

@@ -3,6 +3,7 @@
 #include "VOSS/chassis/DiffChassis.hpp"
 #include "VOSS/controller/ArcPIDControllerBuilder.hpp"
 #include "VOSS/controller/BoomerangControllerBuilder.hpp"
+#include "VOSS/controller/FollowVelocityPath.hpp"
 #include "VOSS/controller/PIDControllerBuilder.hpp"
 #include "VOSS/controller/SwingControllerBuilder.hpp"
 #include "VOSS/exit_conditions/ExitConditions.hpp"
@@ -57,14 +58,24 @@ std::shared_ptr<voss::controller::ExitConditions> ec =
         .add_thru_smoothness(4)
         .build();
 
+std::shared_ptr<voss::controller::FollowVelocityPath> follow_velocity_path =
+    std::make_shared<voss::controller::FollowVelocityPath>(
+        odom,
+        voss::CubicBezierSpline<1000>{
+            {0, 0},
+            {24, 0},
+            {24, 24},
+            {48, 24},
+        });
+
 voss::chassis::DiffChassis chassis(
     {10, -9, -8},  //
     {-1, 2, 3},
     pid,
     ec,
     8,
-    0.0,
-    0.0,
+    1183.65488701421f,
+    135.5858378091f,
     pros::E_MOTOR_BRAKE_COAST);
 
 voss::Screen screen;
