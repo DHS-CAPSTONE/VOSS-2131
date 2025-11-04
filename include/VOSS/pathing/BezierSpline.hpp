@@ -11,6 +11,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 
 #include "VOSS/pathing/AbstractPath.hpp"
 #include "VOSS/pathing/AbstractSpline.hpp"
@@ -33,8 +34,7 @@ class CubicBezierSpline : public AbstractSpline, public AbstractPath
   CubicBezierSpline(const Point P0, const Point P1, const Point P2, const Point P3)
       : P0(P0), P1(P1), P2(P2), P3(P3), AbstractSpline()
   {
-    fillPath();
-    AbstractPath::set_points(toDoublePoints());
+    this->fillPath();
   }
 
   Point get_point(double t) override
@@ -82,33 +82,23 @@ class CubicBezierSpline : public AbstractSpline, public AbstractPath
     return out;
   }
 
-  double get_nearest_t(const Point& A) const { return path[this->closest_point_index(A)].first; }
-  Point get_nearest_point(const Point& A) const
-  {
-    return path[this->closest_point_index(A)].second;
-  }
+  double get_nearest_t(const Point& A) const { return this->closest_point(A).first; }
 
-  std::pair<double, Point> get_nearest(const Point& A) const
-  {
-    size_t idx = this->closest_point_index(A);
-    return path[idx];
-  }
+  std::pair<double, Point> get_nearest(const Point& A) const { return this->closest_point(A); }
 
  private:
   void fillPath()
   {
+    std::vector<Point> points;
+
     for (size_t i = 0; i < samples; ++i)
     {
       double t = (samples == 1) ? 0.0 : double(i) / double(samples - 1);
       path[i] = {t, get_point(t)};
+      points.push_back(path[i].second);
     }
-  }
 
-  std::vector<DoublePoint> toDoublePoints() const
-  {
-    std::vector<DoublePoint> pts(samples);
-    for (size_t i = 0; i < samples; ++i) { pts[i] = {path[i].second.x, path[i].second.y}; }
-    return pts;
+    this->set_points(points);
   }
 };
 }  // namespace voss

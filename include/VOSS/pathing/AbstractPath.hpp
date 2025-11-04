@@ -1,69 +1,64 @@
 #pragma once
-#include <array>
+
 #include <cmath>
 #include <vector>
 
-#include "Nanoflann/nanoflann.hpp"
 #include "VOSS/utils/Point.hpp"
+#include "knn_search/kdtree.hpp"
+
 namespace voss
 {
 class AbstractPath
 {
- public:
-  using DoublePoint = std::array<double, 2>;
-
  private:
-  struct PathPoints
-  {
-    std::vector<DoublePoint> pts;
-
-    inline size_t kdtree_get_point_count() const { return pts.size(); }
-    inline double kdtree_get_pt(const size_t idx, const size_t dim) const { return pts[idx][dim]; }
-
-    template <class BBOX>
-    bool kdtree_get_bbox(BBOX&) const
-    {
-      return false;
-    }
-  };
-
-  using KDTree = nanoflann::
-      KDTreeSingleIndexAdaptor<nanoflann::L2_Simple_Adaptor<double, PathPoints>, PathPoints, 2>;
-
-  PathPoints cloud_;
-  std::unique_ptr<KDTree> index_;
+  Kdtree::KdNodeVector nodes;
+  mutable Kdtree::KdTree* tree = nullptr;
 
  protected:
   AbstractPath() = default;
 
-  explicit AbstractPath(const std::vector<DoublePoint>& points) { set_points(points); }
-
-  void set_points(const std::vector<DoublePoint>& points)
+  virtual ~AbstractPath()
   {
-    cloud_.pts = points;
-    index_ = std::make_unique<KDTree>(2, cloud_, nanoflann::KDTreeSingleIndexAdaptorParams(10));
-    index_->buildIndex();
+    if (tree) delete tree;
   }
 
-  /// Find nearest vertex on the path (returns index)
-  size_t closest_point_index(const Point& p, double* out_dist_sqr = nullptr) const
-  {
-    if (!index_) return 0;
-    const double query_pt[2] = {p.x, p.y};
-    typename KDTree::IndexType ret_index = 0;
-    double out_dist_sqr_local = 0.0;
+  explicit AbstractPath(const std::vector<Point>& points) { set_points(points); }
 
-    index_->knnSearch(query_pt, 1, &ret_index, &out_dist_sqr_local);
-    if (out_dist_sqr) *out_dist_sqr = out_dist_sqr_local;
-    return static_cast<size_t>(ret_index);
+  void set_points(const std::vector<Point>& points)
+  {
+    nodes.clear();
+    for (size_t i = 0; i < points.size(); ++i)
+    {
+      Kdtree::CoordPoint coord_point = {points[i].x, points[i].y};
+      nodes.push_back(Kdtree::KdNode(coord_point, nullptr, i));
+    }
+
+    if (tree)
+    {
+      delete tree;
+      tree = nullptr;
+    }
+    tree = new Kdtree::KdTree(&nodes);
   }
 
-  /// Return nearest point (distance + point)
   std::pair<double, Point> closest_point(const Point& p) const
   {
-    double dist_sqr;
-    size_t idx = closest_point_index(p, &dist_sqr);
-    return {std::sqrt(dist_sqr), Point{cloud_.pts[idx][0], cloud_.pts[idx][1]}};
+    const Kdtree::CoordPoint query = {p.x, p.y};
+    Kdtree::KdNodeVector result;
+
+    if (!tree)
+    {
+      // no points set; return zero t and a default point
+      return {0.0, Point{0.0, 0.0}};
+    }
+
+    tree->k_nearest_neighbors(query, 1, &result);
+
+    double index = static_cast<double>(result[0].index);
+    Point closest_point = {result[0].point[0], result[0].point[1]};
+
+    double t = (nodes.size() > 1) ? index / static_cast<double>(nodes.size() - 1) : 0.0;
+    return {t, closest_point};
   }
 };
 }  // namespace voss

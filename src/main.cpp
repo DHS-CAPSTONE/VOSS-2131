@@ -44,7 +44,7 @@ void disabled() {}
 
 void competition_initialize() {}
 
-void autonomous() {}
+void autonomous() { chassis.move({0, 0, 0}, follow_velocity_path, 10000, voss::Flags::RELATIVE); }
 
 void opcontrol()
 {
@@ -59,8 +59,8 @@ void opcontrol()
       voss::disable_debug();
     }
 
-    double x = 10.0;
-    chassis.execute(voss::chassis::diff_commands::WheelVelocities{x, x}, 1000.0);
+    // double x = 10.0;
+    // chassis.execute(voss::chassis::diff_commands::WheelVelocities{x, x}, 1000.0);
 
     pros::delay(10);
   }
