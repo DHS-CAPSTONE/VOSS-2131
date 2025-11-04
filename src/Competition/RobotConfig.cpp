@@ -9,10 +9,16 @@
 #include "VOSS/exit_conditions/ExitConditions.hpp"
 #include "VOSS/localizer/IMELocalizerBuilder.hpp"
 
+#define LEFT_OLD {10, -9, -8}
+#define RIGHT_OLD {-1, 2, 3}
+
+#define LEFT_NEW {-2, -3, 4}
+#define RIGHT_NEW {5, 6, -7}
+
 std::shared_ptr<voss::localizer::IMELocalizer> odom =
     voss::localizer::IMELocalizerBuilder::new_builder()
-        .with_left_motors({10, -9, -8})
-        .with_right_motors({-1, 2, 3})
+        .with_left_motors(LEFT_NEW)
+        .with_right_motors(RIGHT_NEW)
         .with_imu(21)
         .with_left_right_tpi(400.0 / 9.0)
         .with_middle_tpi(400.0 / 9.0)
@@ -69,8 +75,8 @@ std::shared_ptr<voss::controller::FollowVelocityPath> follow_velocity_path =
         });
 
 voss::chassis::DiffChassis chassis(
-    {10, -9, -8},  //
-    {-1, 2, 3},
+    LEFT_NEW,  //
+    RIGHT_NEW,
     pid,
     ec,
     8,

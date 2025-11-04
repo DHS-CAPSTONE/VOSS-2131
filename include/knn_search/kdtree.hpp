@@ -12,6 +12,7 @@
 //
 
 #include <cstdlib>
+#include <memory>
 #include <queue>
 #include <vector>
 
@@ -79,7 +80,7 @@ class KdTree
 {
  private:
   // recursive build of tree
-  kdtree_node* build_tree(size_t depth, size_t a, size_t b);
+  std::unique_ptr<kdtree_node> build_tree(size_t depth, size_t a, size_t b);
   // helper variable for keeping track of subtree bounding box
   CoordPoint lobound, upbound;
   // helper variable to check the distance method
@@ -98,7 +99,7 @@ class KdTree
  public:
   KdNodeVector allnodes;
   size_t dimension;
-  kdtree_node* root;
+  std::unique_ptr<kdtree_node> root;
   // distance_type can be 0 (max), 1 (city block), or 2 (euklid [squared])
   KdTree(const KdNodeVector* nodes, int distance_type = 2);
   ~KdTree();

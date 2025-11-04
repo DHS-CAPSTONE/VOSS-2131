@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 
 namespace Kdtree
@@ -39,12 +40,12 @@ class kdtree_node
   kdtree_node()
   {
     dataindex = cutdim = 0;
-    loson = hison = (kdtree_node*)NULL;
+    loson = nullptr;
+    hison = nullptr;
   }
   ~kdtree_node()
   {
-    if (loson) delete loson;
-    if (hison) delete hison;
+    // children are managed by unique_ptr; nothing to do here
   }
   // index of node data in kdtree array "allnodes"
   size_t dataindex;
@@ -54,7 +55,7 @@ class kdtree_node
   // double cutval; // == point[cutdim]
   CoordPoint point;
   //  roots of the two subtrees
-  kdtree_node *loson, *hison;
+  std::unique_ptr<kdtree_node> loson, hison;
   // bounding rectangle of this node's subtree
   CoordPoint lobound, upbound;
 };
@@ -89,6 +90,11 @@ class DistanceL0 : virtual public DistanceMeasure
   }
   double distance(const CoordPoint& p, const CoordPoint& q)
   {
+    if (p.size() != q.size())
+    {
+      throw std::invalid_argument(
+          "kdtree::DistanceL0::distance(): point vectors must have same dimension");
+    }
     size_t i;
     double dist, test;
     if (w)
@@ -114,7 +120,12 @@ class DistanceL0 : virtual public DistanceMeasure
   double coordinate_distance(double x, double y, size_t dim)
   {
     if (w)
+    {
+      if (dim >= w->size())
+        throw std::invalid_argument(
+            "kdtree::DistanceL0::coordinate_distance(): weight vector too small");
       return (*w)[dim] * fabs(x - y);
+    }
     else
       return fabs(x - y);
   }
@@ -138,6 +149,11 @@ class DistanceL1 : virtual public DistanceMeasure
   }
   double distance(const CoordPoint& p, const CoordPoint& q)
   {
+    if (p.size() != q.size())
+    {
+      throw std::invalid_argument(
+          "kdtree::DistanceL1::distance(): point vectors must have same dimension");
+    }
     size_t i;
     double dist = 0.0;
     if (w)
@@ -153,7 +169,12 @@ class DistanceL1 : virtual public DistanceMeasure
   double coordinate_distance(double x, double y, size_t dim)
   {
     if (w)
+    {
+      if (dim >= w->size())
+        throw std::invalid_argument(
+            "kdtree::DistanceL1::coordinate_distance(): weight vector too small");
       return (*w)[dim] * fabs(x - y);
+    }
     else
       return fabs(x - y);
   }
@@ -177,6 +198,11 @@ class DistanceL2 : virtual public DistanceMeasure
   }
   double distance(const CoordPoint& p, const CoordPoint& q)
   {
+    if (p.size() != q.size())
+    {
+      throw std::invalid_argument(
+          "kdtree::DistanceL2::distance(): point vectors must have same dimension");
+    }
     size_t i;
     double dist = 0.0;
     if (w)
@@ -192,7 +218,12 @@ class DistanceL2 : virtual public DistanceMeasure
   double coordinate_distance(double x, double y, size_t dim)
   {
     if (w)
+    {
+      if (dim >= w->size())
+        throw std::invalid_argument(
+            "kdtree::DistanceL2::coordinate_distance(): weight vector too small");
       return (*w)[dim] * (x - y) * (x - y);
+    }
     else
       return (x - y) * (x - y);
   }
@@ -201,11 +232,7 @@ class DistanceL2 : virtual public DistanceMeasure
 //--------------------------------------------------------------
 // destructor and constructor of kdtree
 //--------------------------------------------------------------
-KdTree::~KdTree()
-{
-  if (root) delete root;
-  delete distance;
-}
+KdTree::~KdTree() { delete distance; }
 // distance_type can be 0 (Maximum), 1 (Manhatten), or 2 (Euklidean [squared])
 KdTree::KdTree(const KdNodeVector* nodes, int distance_type /*=2*/)
 {
@@ -213,9 +240,22 @@ KdTree::KdTree(const KdNodeVector* nodes, int distance_type /*=2*/)
   double val;
   // copy over input data
   if (!nodes || nodes->empty())
+  {
     throw std::invalid_argument("kdtree::KdTree(): argument nodes must not be empty");
+  }
+
   dimension = nodes->begin()->point.size();
+  if (dimension == 0)
+  {
+    throw std::invalid_argument("kdtree::KdTree(): point dimension must be > 0");
+  }
   allnodes = *nodes;
+  // validate that all nodes have the same dimension
+  for (size_t idx = 0; idx < allnodes.size(); ++idx)
+  {
+    if (allnodes[idx].point.size() != dimension)
+      throw std::invalid_argument("kdtree::KdTree(): all nodes must have the same dimension");
+  }
   // initialize distance values
   distance = NULL;
   this->distance_type = -1;
@@ -251,11 +291,11 @@ void KdTree::set_distance(int distance_type, const DoubleVector* weights /*=NULL
 // "a" and "b"-1 are the lower and upper indices
 // from "allnodes" from which the subtree is to be built
 //--------------------------------------------------------------
-kdtree_node* KdTree::build_tree(size_t depth, size_t a, size_t b)
+std::unique_ptr<kdtree_node> KdTree::build_tree(size_t depth, size_t a, size_t b)
 {
   size_t m;
   double temp, cutval;
-  kdtree_node* node = new kdtree_node();
+  std::unique_ptr<kdtree_node> node = std::make_unique<kdtree_node>();
   node->lobound = lobound;
   node->upbound = upbound;
   node->cutdim = depth % dimension;
@@ -330,7 +370,7 @@ void KdTree::k_nearest_neighbors(
         neighborheap->push(nn4heap(i, distance->distance(allnodes[i].point, point)));
     }
   }
-  else { neighbor_search(point, root, k, neighborheap); }
+  else { neighbor_search(point, root.get(), k, neighborheap); }
 
   // copy over result sorted by distance
   // (we must revert the vector for ascending order)
@@ -375,7 +415,7 @@ void KdTree::range_nearest_neighbors(const CoordPoint& point, double r, KdNodeVe
 
   // collect result in range_result
   std::vector<size_t> range_result;
-  range_search(point, root, r, &range_result);
+  range_search(point, root.get(), r, &range_result);
 
   // copy over result
   for (std::vector<size_t>::iterator i = range_result.begin(); i != range_result.end(); ++i)
@@ -411,25 +451,25 @@ bool KdTree::neighbor_search(
   if (point[node->cutdim] < node->point[node->cutdim])
   {
     if (node->loson)
-      if (neighbor_search(point, node->loson, k, neighborheap)) return true;
+      if (neighbor_search(point, node->loson.get(), k, neighborheap)) return true;
   }
   else
   {
     if (node->hison)
-      if (neighbor_search(point, node->hison, k, neighborheap)) return true;
+      if (neighbor_search(point, node->hison.get(), k, neighborheap)) return true;
   }
   // second search on farther side, if necessary
   if (neighborheap->size() < k) { dist = std::numeric_limits<double>::max(); }
   else { dist = neighborheap->top().distance; }
   if (point[node->cutdim] < node->point[node->cutdim])
   {
-    if (node->hison && bounds_overlap_ball(point, dist, node->hison))
-      if (neighbor_search(point, node->hison, k, neighborheap)) return true;
+    if (node->hison && bounds_overlap_ball(point, dist, node->hison.get()))
+      if (neighbor_search(point, node->hison.get(), k, neighborheap)) return true;
   }
   else
   {
-    if (node->loson && bounds_overlap_ball(point, dist, node->loson))
-      if (neighbor_search(point, node->loson, k, neighborheap)) return true;
+    if (node->loson && bounds_overlap_ball(point, dist, node->loson.get()))
+      if (neighbor_search(point, node->loson.get(), k, neighborheap)) return true;
   }
 
   if (neighborheap->size() == k) dist = neighborheap->top().distance;
@@ -445,13 +485,13 @@ void KdTree::range_search(
 {
   double curdist = distance->distance(point, node->point);
   if (curdist <= r) { range_result->push_back(node->dataindex); }
-  if (node->loson != NULL && this->bounds_overlap_ball(point, r, node->loson))
+  if (node->loson != NULL && this->bounds_overlap_ball(point, r, node->loson.get()))
   {
-    range_search(point, node->loson, r, range_result);
+    range_search(point, node->loson.get(), r, range_result);
   }
-  if (node->hison != NULL && this->bounds_overlap_ball(point, r, node->hison))
+  if (node->hison != NULL && this->bounds_overlap_ball(point, r, node->hison.get()))
   {
-    range_search(point, node->hison, r, range_result);
+    range_search(point, node->hison.get(), r, range_result);
   }
 }
 
