@@ -11,6 +11,7 @@ class AbstractPath
 {
  private:
   std::vector<Point> path_points;
+  double length = 0.0;
 
  protected:
   AbstractPath() = default;
@@ -21,9 +22,15 @@ class AbstractPath
   {
     path_points.clear();
     for (auto& point : points) { path_points.push_back(point); }
+    for (size_t i = 1; i < path_points.size(); i++)
+    {
+      length += std::hypot(
+          path_points[i].x - path_points[i - 1].x, path_points[i].y - path_points[i - 1].y);
+    }
   }
 
-  std::pair<double, Point> closest_point(const Point& p) const
+ public:
+  virtual std::pair<double, Point> get_nearest(const Point& p) const
   {
     double dist = std::numeric_limits<double>::infinity();
     Point closest_point;
@@ -42,5 +49,7 @@ class AbstractPath
 
     return {t, closest_point};
   }
+
+  virtual double get_length() const { return length; }
 };
 }  // namespace voss

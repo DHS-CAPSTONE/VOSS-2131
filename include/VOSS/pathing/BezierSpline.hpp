@@ -82,10 +82,6 @@ class CubicBezierSpline : public AbstractSpline, public AbstractPath
     return out;
   }
 
-  double get_nearest_t(const Point& A) const { return this->closest_point(A).first; }
-
-  std::pair<double, Point> get_nearest(const Point& A) const { return this->closest_point(A); }
-
  private:
   void fillPath()
   {
