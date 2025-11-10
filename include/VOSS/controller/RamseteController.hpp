@@ -3,6 +3,8 @@
 #include <memory>
 
 #include "VOSS/controller/AbstractController.hpp"
+#include "VOSS/pathing/BezierSpline.hpp"
+#include "VOSS/pathing/MotionProfile.hpp"
 
 namespace voss::controller
 {
@@ -10,6 +12,9 @@ namespace voss::controller
 class RamseteController : public AbstractController
 {
  protected:
+  CubicBezierSpline<300> Spline;
+  MotionProfile AngularMotionProfile;
+
  public:
   RamseteController(std::shared_ptr<localizer::AbstractLocalizer> l);
 
@@ -23,12 +28,7 @@ class RamseteController : public AbstractController
 
   void reset() override;
 
-  std::shared_ptr<RamseteController> modify_linear_constants(double kP, double kI, double kD);
-  std::shared_ptr<RamseteController> modify_angular_constants(double kP, double kI, double kD);
-  std::shared_ptr<RamseteController> modify_min_error(double min_error);
-
   friend class RamseteControllerBuilder;
-  friend class BoomerangControllerBuilder;
 };
 
 }  // namespace voss::controller

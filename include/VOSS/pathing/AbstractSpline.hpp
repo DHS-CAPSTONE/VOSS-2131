@@ -79,6 +79,24 @@ class AbstractSpline
     return {max_ang_t, max_ang_vel};
   }
 
+  virtual std::pair<double, double> get_greatest_linear_velocity(const int steps = 100)
+  {
+    double max_lin_vel = 0.0;
+    double max_lin_t = 0.0;
+    for (int i = 0; i <= steps; ++i)
+    {
+      double t = static_cast<double>(i) / steps;
+      Point vel = get_global_velocity(t);
+      double lin_vel = fabs(std::hypot(vel.x, vel.y));
+      if (lin_vel > max_lin_vel)
+      {
+        max_lin_vel = lin_vel;
+        max_lin_t = t;
+      }
+    }
+    return {max_lin_t, max_lin_vel};
+  }
+
   std::pair<double, double> get_path_limits()
   {
     if (!path_limits_computed)
