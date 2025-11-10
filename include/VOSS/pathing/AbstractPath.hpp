@@ -50,6 +50,19 @@ class AbstractPath
     return {t, closest_point};
   }
 
-  virtual double get_length() const { return length; }
+  virtual double get_length(double t) const
+  {
+    if (t == 1.0) { return length; }
+
+    double length = 0.0;
+    size_t end = static_cast<size_t>(path_points.size() * t);
+
+    for (size_t i = 1; i < end; i++)
+    {
+      length += std::hypot(
+          path_points[i].x - path_points[i - 1].x, path_points[i].y - path_points[i - 1].y);
+    }
+    return length;
+  }
 };
 }  // namespace voss
