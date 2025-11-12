@@ -1,7 +1,7 @@
 /**
  * @file MotionProfile.hpp
  * @author Andrew Hilton (2131N)
- * @brief Trapezoidal Motion Profile 
+ * @brief Trapezoidal Motion Profile
  * @version 0.2
  * @date 2025-11-09
  */
@@ -13,13 +13,13 @@
 class MotionProfile
 {
  private:
-  const double v_initial;
-  const double v_final;
+  double v_initial;
+  double v_final;
 
-  const double a_max;
-  const double v_max;
+  double a_max;
+  double v_max;
 
-  const double d_total;
+  double d_total;
 
   // Computed parameters
   double v_peak;  // actual top velocity (may be < v_max)
@@ -116,4 +116,39 @@ class MotionProfile
 
   double get_total_time() const { return t_total; }
   double get_peak_velocity() const { return v_peak; }
+  double get_time(double d) const
+  {
+    if (d <= 0) return 0.0;
+
+    // --- Acceleration phase ---
+    if (d < d_accel)
+    {
+      // d = v_i * t + 0.5 * a * t^2
+      // Solve quadratic: 0.5 * a * t^2 + v_i * t - d = 0
+      double discriminant = v_initial * v_initial + 2 * a_max * d;
+      return (-v_initial + std::sqrt(discriminant)) / a_max;
+    }
+
+    // --- Coasting phase ---
+    else if (d < d_accel + d_coast)
+    {
+      double d_coast_phase = d - d_accel;
+      return t_accel + d_coast_phase / v_peak;
+    }
+
+    // --- Deceleration phase ---
+    else if (d < d_total)
+    {
+      double d_decel_phase = d - (d_accel + d_coast);
+
+      // During decel:
+      // d' = v_peak * t - 0.5 * a * t^2
+      // 0.5 * a * t^2 - v_peak * t + d' = 0
+      double discriminant = v_peak * v_peak - 2 * a_max * d_decel_phase;
+      double t_decel_phase = (v_peak - std::sqrt(discriminant)) / a_max;
+      return t_accel + t_coast + t_decel_phase;
+    }
+
+    return t_total;
+  }
 };

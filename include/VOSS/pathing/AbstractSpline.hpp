@@ -103,8 +103,9 @@ class AbstractSpline
     {
       auto [t, max_w] = get_greatest_angular_velocity();
       this->max_path_w = max_w;
-      double curvature = get_curvature(t);
-      this->max_path_v = (curvature == 0.0) ? 0.0 : this->max_path_w / curvature;
+      
+      auto [t2, max_v] = get_greatest_linear_velocity();
+      this->max_path_v = max_v;
       path_limits_computed = true;
     }
     return {this->max_path_v, this->max_path_w};

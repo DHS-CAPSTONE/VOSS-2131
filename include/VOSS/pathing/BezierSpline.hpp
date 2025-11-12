@@ -23,15 +23,15 @@ template <size_t samples>
 class CubicBezierSpline : public AbstractSpline, public AbstractPath
 {
  private:
-  const Point P0;
-  const Point P1;
-  const Point P2;
-  const Point P3;
+  Point P0;
+  Point P1;
+  Point P2;
+  Point P3;
 
   std::array<std::pair<double, Point>, samples> path;
 
  public:
-  CubicBezierSpline(const Point P0, const Point P1, const Point P2, const Point P3)
+  CubicBezierSpline(Point P0, Point P1, Point P2, Point P3)
       : P0(P0), P1(P1), P2(P2), P3(P3), AbstractSpline()
   {
     this->fillPath();
